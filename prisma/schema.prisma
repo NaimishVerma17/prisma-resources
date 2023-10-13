@@ -10,13 +10,116 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  ADMIN
+  USER
+}
+
+enum OrderEventStatus {
+  PENDING
+  ACCEPTED
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
 model User {
   id Int @id @default(autoincrement())
   name String
   email String @unique
   password String
+  role Role @default(USER)
+  defaultShippingAddress Int?
+  defaultBillingAddress Int?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  addresses Address[]
+  cartItems CartItem[]
+  orders Order[]
+
   @@map("users")
+}
+
+model Address {
+  id Int @id @default(autoincrement())
+  lineOne String
+  lineTwo String?
+  city String
+  country String
+  pincode String
+  userId Int
+  user User @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("addresses")
+}
+
+model Product {
+  id Int @id @default(autoincrement())
+  name String
+  description String @db.Text
+  price Decimal
+  tags String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cartItems CartItem[]
+  orders OrderProduct[]
+
+  @@map("products")
+}
+
+model CartItem {
+  id Int @id @default(autoincrement())
+  userId Int
+  user User @relation(fields: [userId], references: [id])
+  productId Int
+  product Product @relation(fields: [productId], references: [id])
+  quantity Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("cart_items")
+}
+
+model Order {
+  id Int @id @default(autoincrement())
+  userId Int
+  user User @relation(fields: [userId], references: [id])
+  netAmount Decimal
+  address String
+  status OrderEventStatus @default(PENDING)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products OrderProduct[]
+  events OrderEvent[]
+
+  @@map("orders")
+}
+
+model OrderProduct {
+  id Int @id @default(autoincrement())
+  orderId Int
+  order Order @relation(fields: [orderId], references: [id])
+  productId Int
+  product Product @relation(fields: [productId], references: [id])
+  quantity Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("order_products")
+}
+
+model OrderEvent {
+  id Int @id @default(autoincrement())
+  orderId Int
+  order Order @relation(fields: [orderId], references: [id])
+  status OrderEventStatus @default(PENDING)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("order_events")
 }
