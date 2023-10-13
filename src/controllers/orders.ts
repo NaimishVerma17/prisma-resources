@@ -117,3 +117,64 @@ export const getOrderById = async(req: Request, res: Response) => {
     }
 
 }
+
+export const listAllOrders = async(req: Request, res: Response) => {
+    let whereClause = {}
+    const status = req.query.status
+    if (status) {
+        whereClause = {
+            status
+        }
+    }
+    const orders = await prismaCilent.order.findMany({
+        where: whereClause,
+        skip: +req.query.skip || 0,
+        take: 5
+    })
+    res.json(orders)
+}
+
+export const changeStatus = async(req: Request, res: Response) => {
+    // wrap it inside transaction
+    try {
+        const order = await prismaCilent.order.update({
+            where: {
+                id: +req.params.id
+            },
+            data: {
+                status: req.body.status
+            }
+        })
+        await prismaCilent.orderEvent.create({
+            data: {
+                orderId: order.id,
+                status: req.body.status
+            }
+        })
+        res.json(order)
+    } catch(err) {
+        throw new NotFoundException('Order not found', ErrorCode.ORDER_NOT_FOUND)
+    }
+    
+}
+
+export const listUserOrders = async(req: Request, res: Response) => {
+    let whereClause: any = {
+        userId: +req.params.id
+    }
+    const status = req.params.status
+    if (status) {
+        whereClause = {
+            ...whereClause,
+            status
+        }
+    }
+    const orders = await prismaCilent.order.findMany({
+        where: whereClause,
+        skip: +req.query.skip || 0,
+        take: 5
+    })
+    res.json(orders)
+    
+}
+

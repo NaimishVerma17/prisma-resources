@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "fullTextIndex"]
 }
 
 datasource db {
@@ -58,7 +59,7 @@ model Address {
 
 model Product {
   id Int @id @default(autoincrement())
-  name String
+  name String  
   description String @db.Text
   price Decimal
   tags String
@@ -67,6 +68,8 @@ model Product {
 
   cartItems CartItem[]
   orders OrderProduct[]
+
+  @@fulltext([name, description, tags])
 
   @@map("products")
 }

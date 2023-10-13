@@ -74,3 +74,24 @@ export const getProductById =async (req: Request, res: Response) => {
     }
     
 }
+
+export const searchProducts =async (req: Request, res: Response) => {
+
+    // implement pagination here
+
+    const products = await prismaCilent.product.findMany({
+        where:{
+            name: {
+                search: req.query.q.toString()
+            },
+            description: {
+                search: req.query.q.toString()
+            },
+            tags: {
+                search: req.query.q.toString()
+            },
+        }
+    })
+    res.json(products)
+}
+    
